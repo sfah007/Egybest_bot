@@ -4,7 +4,7 @@ astroid==2.4.1
 backports.zoneinfo==0.2.1
 beautifulsoup4 @ file:///home/linux1/recipes/ci/beautifulsoup4_1610988766420/work
 brotlipy==0.7.0
-bs4==0.0.1
+bs4
 cachetools==4.2.2
 certifi==2021.5.30
 cffi @ file:///C:/ci/cffi_1625831749120/work
