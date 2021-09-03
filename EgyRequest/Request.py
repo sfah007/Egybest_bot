@@ -5,6 +5,7 @@ import os
 from bs4 import BeautifulSoup
 from lxml import etree
 from fake_useragent import UserAgent
+from requests.api import options
 from selenium import webdriver
 from fake_useragent import UserAgent
 from selenium.webdriver.support import expected_conditions as EC
@@ -70,7 +71,7 @@ def get_links(show):
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument('--no-sandbox')
-    browser = webdriver.Chrome(executable_path=str(os.environ.get('CHROMEDRIVER_PATH'), chrome_options=chrome_options))
+    browser = webdriver.Chrome(executable_path=str(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options))
 
     browser.get(show['url'])
 
