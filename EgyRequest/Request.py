@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from pprint import pprint
-from EgybestBot.EgyFucntions.Function import inline
+from EgyFucntions.Function import inline
 from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 
