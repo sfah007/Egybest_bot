@@ -42,14 +42,14 @@ participants = [i.id for i in geting_participants]
 def start(update, context):
     '''Getting input from user, then search it'''
 
-    if update.effective_user.id in participants:
-        update.message.reply_text(text='الرجاء كتابة فلمك المفضل')
+    # if update.effective_user.id in participants:
+    update.message.reply_text(text='الرجاء كتابة فلمك المفضل')
 
-        return SELECTING_SHOW
-    else:
-        update.message.reply_text(text='الرجاء الاشتراك في القناة اولا، https://t.me/Egybot_Community')
+    return SELECTING_SHOW
+    # else:
+    #     update.message.reply_text(text='الرجاء الاشتراك في القناة اولا، https://t.me/Egybot_Community')
 
-        return END
+    #     return END
 
 def input_search(update, context):
     '''Handling inputs received from user'''
