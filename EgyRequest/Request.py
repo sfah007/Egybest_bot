@@ -18,6 +18,15 @@ from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
 
+chrome_options = webdriver.ChromeOptions()
+user = UserAgent()
+chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
+chrome_options.add_argument(f'user-agent={user.random}')
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--no-sandbox')
+browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+
 def get_shows(key_word):
     moviesDict = {}
     imgs = []
@@ -62,16 +71,6 @@ def get_info(show):
 
 
 def get_links(show):
-    caps = DesiredCapabilities.CHROME
-    caps['goog:loggingPrefs'] = {'performance': 'ALL'}
-    chrome_options = webdriver.ChromeOptions()
-    user = UserAgent()
-    chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
-    chrome_options.add_argument(f'user-agent={user.random}')
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--no-sandbox')
-    browser = webdriver.Chrome(executable_path=str(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options))
 
     browser.get(show['url'])
 
