@@ -1,4 +1,5 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram.update import Update
 from EgyRequest.Request import get_shows, get_info, get_links
 from EgyFucntions.Function import inline
 from EgyRequest.Text import command_prevent_message, all_prevent_message, select_type_message
@@ -8,9 +9,11 @@ from telegram.ext import (
     Updater,
     CommandHandler,
     MessageHandler,
+    TypeHandler,
     Filters,
     CallbackQueryHandler,
-    ConversationHandler
+    ConversationHandler,
+    updater
 )
 
 # State definitions for conversation
@@ -31,18 +34,30 @@ from telegram.ext import (
 END = ConversationHandler.END
 TIMEOUT = ConversationHandler.TIMEOUT
 
-api_id = 7674707
-api_hash = '165eb092814f4a54e215e0c03b844de7'
+# api_id = 7674707
+# api_hash = '165eb092814f4a54e215e0c03b844de7'
 
-client = TelegramClient('H_hisham', api_id, api_hash).start(phone='+201008568308')
-geting_participants = client.get_participants('Egybot_Community')
-participants = [i.id for i in geting_participants]
+# client = TelegramClient('H_hisham', api_id, api_hash).start(phone='+201008568308')
+# geting_participants = client.get_participants('Egybot_Community')
+# participants = [i.id for i in geting_participants]
+
+# bot = telebot.TeleBot("1979999444:AAGuFJiCYCtVB7m2jQojH8zbuYh4F_lU2_o")
+
+# channel_id = -1001591746087
+# user_id = 467288828
+
+# result = bot.get_chat_member(channel_id, user_id)
+# print(result)
+
+# bot.polling()
+
 
 
 def start(update, context):
     '''Getting input from user, then search it'''
 
     # if update.effective_user.id in participants:
+    print(update.message.new_chat_members)
     update.message.reply_text(text='الرجاء كتابة فلمك المفضل')
 
     return SELECTING_SHOW
@@ -101,7 +116,7 @@ def select_type(update, context):
     info = get_info(selected_show)
 
     buttons = [
-        [InlineKeyboardButton(text='تحميل', callback_data='download'),
+        [InlineKeyboardButton(text='تحميل', callback_data='dl'),
         InlineKeyboardButton(text='مشاهدة', callback_data='watch')],
         [InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_shows')]
     ]
@@ -116,7 +131,7 @@ def select_type(update, context):
 def select_quality(update, context):
     selected_type = context.user_data['selected_show']
     update.callback_query.edit_message_text(text='الرجاء الإنتظار لمدة اقصاها 5 ثواني', parse_mode=ParseMode.MARKDOWN)
-    links = get_links(selected_type['show'])
+    links = get_links(selected_type['show'], type=update.callback_query.data)
     links_table = context.user_data['selected_show']['links_table']
     back_show_button = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_shows')]]
     buttons = inline([InlineKeyboardButton(text=f'{links_table[i]} - {links_table[i+1]}', callback_data=f'{links_table[i]}', url=links[int(i/2)]) for i in range(0, len(links_table), 2)], add=back_show_button)
@@ -125,6 +140,9 @@ def select_quality(update, context):
     buttons_markup = InlineKeyboardMarkup(buttons)
     pprint(buttons_markup)
     update.callback_query.edit_message_text(text=select_type_message(selected_type), reply_markup=buttons_markup)
+    
+def type_hand(update, context):
+    print('handled')
 
 def back_to_shows(update, context):
     print('back')
@@ -154,7 +172,7 @@ def main():
     inline_conversation_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(select_type), MessageHandler(Filters.text &(~Filters.regex(f'^/cancel$')), all_prevent)],
         states={
-            SELECTING_QUALITY: [CallbackQueryHandler(select_quality, pattern=f'^(watch|download)$')],
+            SELECTING_QUALITY: [CallbackQueryHandler(select_quality, pattern=f'^(watch|dl)$')],
         },
         fallbacks=[MessageHandler(Filters.text &(~Filters.regex(f'^/cancel$')), all_prevent),
                    CallbackQueryHandler(back_to_shows, pattern=f'^back_shows'),
@@ -174,6 +192,8 @@ def main():
         },
         fallbacks=[MessageHandler(Filters.command & (~Filters.regex(f'^/cancel$')), command_prevent), CommandHandler('cancel', cancel)],
     )
+    
+    type_handler = TypeHandler(Update, type_hand)
 
     dispatcher.add_handler(search_conversation_handler)
 

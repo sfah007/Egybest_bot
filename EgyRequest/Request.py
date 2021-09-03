@@ -25,7 +25,6 @@ chrome_options.add_argument(f'user-agent={user.random}')
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
-browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
 
 def get_shows(key_word):
     moviesDict = {}
@@ -70,7 +69,8 @@ def get_info(show):
     return {'show':show, 'info':movieTable_text, 'story':story, 'rate':rate, 'links_table':links_table}
 
 
-def get_links(show):
+def get_links(show, type):
+    browser = webdriver.Chrome('/app/.wdm/drivers/chromedriver/linux64/93.0.4577.15', options=chrome_options)
 
     browser.get(show['url'])
 
@@ -82,10 +82,12 @@ def get_links(show):
     WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
     source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
 
+    browser.close()
+    
     headers = {'user-agent': user.random}
 
     request=urllib.request.Request(source,None,headers) #The assembled request
     file = urllib.request.urlopen(request)
-    links = [re.search('(http.*?)/stream/', str(line)).group(1) + '/watch/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
+    links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
 
     return links[::-1]
