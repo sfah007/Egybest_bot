@@ -2,20 +2,20 @@ appdirs==1.4.4
 APScheduler==3.6.3
 astroid==2.4.1
 backports.zoneinfo==0.2.1
-beautifulsoup4 @ file:///home/linux1/recipes/ci/beautifulsoup4_1610988766420/work
+beautifulsoup4
 brotlipy==0.7.0
 bs4
 cachetools==4.2.2
 certifi==2021.5.30
-cffi @ file:///C:/ci/cffi_1625831749120/work
-charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
+cffi
+charset-normalizer
 colorama==0.4.3
 configparser==5.0.2
 crayons==0.4.0
-cryptography @ file:///C:/ci/cryptography_1616769344312/work
+cryptography
 cssselect==1.1.0
 fake-useragent==0.1.11
-idna @ file:///tmp/build/80754af9/idna_1622654382723/work
+idna
 importlib-metadata==4.8.1
 isort==4.3.21
 lazy-object-proxy==1.4.3
@@ -24,32 +24,32 @@ mccabe==0.6.1
 parse==1.19.0
 pyaes==1.6.1
 pyasn1==0.4.8
-pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
+pycparser
 pyee==8.2.2
 pylint==2.5.2
-pyOpenSSL @ file:///tmp/build/80754af9/pyopenssl_1608057966937/work
+pyOpenSSL
 pyppeteer==0.2.6
 pyquery==1.4.3
-PySocks @ file:///C:/ci/pysocks_1605287845585/work
+PySocks
 python-telegram-bot==13.7
 pytz==2021.1
-requests @ file:///tmp/build/80754af9/requests_1629994808627/work
+requests
 requests-html==0.10.0
 rsa==4.7.2
 selenium==3.141.0
-six @ file:///tmp/build/80754af9/six_1623709665295/work
-soupsieve @ file:///tmp/build/80754af9/soupsieve_1616183228191/work
+six
+soupsieve
 Telethon==1.23.0
 toml==0.10.0
 tornado==6.1
 tqdm==4.62.2
 tzdata==2021.1
 tzlocal==3.0
-urllib3 @ file:///tmp/build/80754af9/urllib3_1625084269274/work
+urllib3
 w3lib==1.22.0
 webdriver-manager==3.4.2
 websockets==9.1
-win-inet-pton @ file:///C:/ci/win_inet_pton_1605306167264/work
+win-inet-pton
 wincertstore==0.2
 wrapt==1.12.1
 zipp==3.5.0
