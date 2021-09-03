@@ -1,6 +1,7 @@
 import requests
 import urllib
 import re
+import os
 from bs4 import BeautifulSoup
 from lxml import etree
 from fake_useragent import UserAgent
@@ -14,6 +15,7 @@ from pprint import pprint
 from EgyFucntions.Function import inline
 from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
+from webdriver_manager.chrome import ChromeDriverManager
 
 def get_shows(key_word):
     moviesDict = {}
@@ -63,9 +65,13 @@ def get_links(show):
     caps['goog:loggingPrefs'] = {'performance': 'ALL'}
     chrome_options = webdriver.ChromeOptions()
     user = UserAgent()
+    chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
     chrome_options.add_argument(f'user-agent={user.random}')
     chrome_options.add_argument('--headless')
-    browser = webdriver.Chrome(r'C:\Users\MAMDO\.wdm\drivers\chromedriver\win32\92.0.4515.107\chromedriver.exe', options=chrome_options)
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--no-sandbox')
+    browser = webdriver.Chrome(executable_path=str(os.environ.get('CHROMEDRIVER_PATH'), chrome_options=chrome_options))
+
     browser.get(show['url'])
 
     element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
