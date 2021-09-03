@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
-from EgybestBot.EgyRequest.Request import get_shows, get_info, get_links
-from EgybestBot.EgyFucntions.Function import inline
-from EgybestBot.EgyRequest.Text import command_prevent_message, all_prevent_message, select_type_message
+from EgyRequest.Request import get_shows, get_info, get_links
+from EgyFucntions.Function import inline
+from EgyRequest.Text import command_prevent_message, all_prevent_message, select_type_message
 from telethon import TelegramClient, sync
 from pprint import pprint
 from telegram.ext import (
