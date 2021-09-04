@@ -6,25 +6,26 @@ from bs4 import BeautifulSoup
 from lxml import etree
 from fake_useragent import UserAgent
 from requests.api import options
+from telegram.error import TelegramError
 from selenium import webdriver
 from fake_useragent import UserAgent
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from pprint import pprint
 from EgyFucntions.Function import inline
 from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
+import logging
 
 chrome_options = webdriver.ChromeOptions()
 user = UserAgent()
-chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 chrome_options.add_argument(f'user-agent={user.random}')
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
+browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
 
 def get_shows(key_word):
     moviesDict = {}
@@ -70,24 +71,32 @@ def get_info(show):
 
 
 def get_links(show, type):
-    browser = webdriver.Chrome('/app/.wdm/drivers/chromedriver/linux64/93.0.4577.15', options=chrome_options)
-
     browser.get(show['url'])
+    # for none found movies
+    try:
+        element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
+        element.click()
+        browser.switch_to_frame(element)
 
-    element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
-    element.click()
-    browser.switch_to_frame(element)
+        # wait until disappear
+        WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
+        source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
 
-    # wait until disappear
-    WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
-    source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
+        headers = {'user-agent': user.random}
+        request = urllib.request.Request(source, None, headers)  # The assembled request
+        file = urllib.request.urlopen(request)
+        links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
 
-    browser.close()
-    
-    headers = {'user-agent': user.random}
+        yield links[::-1]
 
-    request=urllib.request.Request(source,None,headers) #The assembled request
-    file = urllib.request.urlopen(request)
-    links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
+        # closing the ads window
+        if len(browser.window_handles) != 1:
+            browser.switch_to.window(browser.window_handles[1])
+            browser.close()
+        browser.switch_to.window(browser.window_handles[0])
+        browser.delete_all_cookies()
 
-    return links[::-1]
+        yield 'closed'
+
+    except TelegramError:
+        yield None
