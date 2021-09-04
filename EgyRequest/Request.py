@@ -22,10 +22,9 @@ import logging
 chrome_options = webdriver.ChromeOptions()
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
-browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
 
 def get_shows(key_word):
     moviesDict = {}
@@ -71,6 +70,7 @@ def get_info(show):
 
 
 def get_links(show, type):
+    browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
     browser.get(show['url'])
     # for none found movies
     try:
@@ -90,11 +90,7 @@ def get_links(show, type):
         yield links[::-1]
 
         # closing the ads window
-        if len(browser.window_handles) != 1:
-            browser.switch_to.window(browser.window_handles[1])
-            browser.close()
-        browser.switch_to.window(browser.window_handles[0])
-        browser.delete_all_cookies()
+        browser.quit()
 
         yield 'closed'
 

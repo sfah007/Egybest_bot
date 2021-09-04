@@ -6,6 +6,7 @@ from EgyFucntions.Function import inline
 from EgyRequest.Text import command_prevent_message, all_prevent_message, select_type_message
 from telethon import TelegramClient, sync
 from pprint import pprint
+import speedtest
 import logging
 from telegram.ext import (
     Updater,
@@ -51,6 +52,8 @@ TIMEOUT = ConversationHandler.TIMEOUT
 # print(result)
 
 # bot.polling()
+
+print(speedtest.Speedtest().download(), speedtest.Speedtest().upload())
 
 logging.basicConfig(format='|(%(asctime)s)| - |%(name)s| - |%(levelname)s| => %(message)s', level=logging.INFO)
 logger = logging.getLogger('Hesham')
@@ -155,7 +158,7 @@ def select_quality(update, context):
 
     # closing browser's window
     next(generator_links)
-    
+
 def type_hand(update, context):
     print('handled')
 
@@ -208,16 +211,18 @@ def main():
         map_to_parent={
             SELECTING_TYPE: SELECTING_TYPE,
             END: END,
-        }
+        },
+        run_async=True
     )
 
     search_conversation_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start, run_async=True)],
+        entry_points=[CommandHandler('start', start)],
         states={
             SELECTING_SHOW: [MessageHandler(Filters.text & (~Filters.command), input_search)],
             SELECTING_TYPE: [inline_conversation_handler]
         },
         fallbacks=[MessageHandler(Filters.command & (~Filters.regex(f'^/cancel$')), command_prevent), CommandHandler('cancel', cancel)],
+        run_async=True
     )
     
     # type_handler = TypeHandler(Update, type_hand)
