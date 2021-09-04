@@ -20,6 +20,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import logging
 
 chrome_options = webdriver.ChromeOptions()
+chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
 chrome_options.add_argument('--headless')
@@ -70,7 +71,7 @@ def get_info(show):
 
 
 def get_links(show, type):
-    browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+    browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)
     browser.get(show['url'])
     # for none found movies
     try:
