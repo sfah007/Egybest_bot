@@ -6,7 +6,6 @@ from EgyFucntions.Function import inline
 from EgyRequest.Text import command_prevent_message, all_prevent_message, select_type_message
 from telethon import TelegramClient, sync
 from pprint import pprint
-import speedtest
 import logging
 from telegram.ext import (
     Updater,
@@ -53,7 +52,6 @@ TIMEOUT = ConversationHandler.TIMEOUT
 
 # bot.polling()
 
-print(speedtest.Speedtest().download(), speedtest.Speedtest().upload())
 
 logging.basicConfig(format='|(%(asctime)s)| - |%(name)s| - |%(levelname)s| => %(message)s', level=logging.INFO)
 logger = logging.getLogger('Hesham')
@@ -91,7 +89,6 @@ def input_search(update, context):
 
         if context.user_data.get('shows'):
             print('yes2')
-            print(update.callback_query.answer(), update.callback_query)
             update.callback_query.edit_message_text(text='نرجو من اختيار احد الأفلام القادمة مع مراعة اختياراتها بشكل صحيح وشكرا لكم جداا:', reply_markup=buttons_markup)
         else:
             print('no2')
@@ -100,6 +97,7 @@ def input_search(update, context):
 
         # saving shows to the user data for next steps
         context.user_data['shows'] = shows
+        print(context.user_data['shows'])
         return SELECTING_TYPE
 
     else:
@@ -172,7 +170,8 @@ def back_to_shows(update, context):
 def back_to_type(update, context):
     print('back_type')
     select_type(update, context)
-    return SELECTING_QUALITY
+
+    # return SELECTING_QUALITY
 
 def timeout(update, context):
     print('timeout')
@@ -199,30 +198,29 @@ def main():
     dispatcher = updater.dispatcher
 
     inline_conversation_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(select_type), MessageHandler(Filters.text &(~Filters.regex(f'^/cancel$')), all_prevent)],
+        entry_points=[CallbackQueryHandler(select_type, run_async=True), MessageHandler(Filters.text &(~Filters.regex(f'^/cancel$')), all_prevent)],
         states={
-            SELECTING_QUALITY: [CallbackQueryHandler(select_quality, pattern=f'^(watch|dl)$')],
+            SELECTING_QUALITY: [CallbackQueryHandler(select_quality, pattern=f'^(watch|dl)$', run_async=True)],
         },
         fallbacks=[MessageHandler(Filters.text &(~Filters.regex(f'^/cancel$')), all_prevent),
                    CallbackQueryHandler(back_to_shows, pattern=f'^back_shows$'),
-                   CallbackQueryHandler(back_to_type, pattern=f'^back_type$'),
+                   CallbackQueryHandler(back_to_type, pattern=f'^back_type$', run_async=True),
                    CommandHandler('cancel', cancel)
         ],
         map_to_parent={
             SELECTING_TYPE: SELECTING_TYPE,
             END: END,
-        },
-        run_async=True
+        }
     )
 
     search_conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
             SELECTING_SHOW: [MessageHandler(Filters.text & (~Filters.command), input_search)],
-            SELECTING_TYPE: [inline_conversation_handler]
+            SELECTING_TYPE: [inline_conversation_handler],
         },
         fallbacks=[MessageHandler(Filters.command & (~Filters.regex(f'^/cancel$')), command_prevent), CommandHandler('cancel', cancel)],
-        run_async=True
+        run_async=True,
     )
     
     # type_handler = TypeHandler(Update, type_hand)
