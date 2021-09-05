@@ -20,10 +20,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 import logging
 
 chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
+# chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 
@@ -69,9 +69,24 @@ def get_info(show):
 
     return {'show':show, 'info':movieTable_text, 'story':story, 'rate':rate, 'links_table':links_table}
 
+def get_season(show):
+    r = requests.get(show).text
+    soup = BeautifulSoup(r, 'html.parser')
+    soup_xpath = etree.HTML(str(soup))
+    seasons = soup_xpath.xpath('//*[@id="mainLoad"]/div[2]/div[2]/div/a/@href')
+
+    return seasons[::-1]
+
+def get_episode(show):
+    r = requests.get(show).text
+    soup = BeautifulSoup(r, 'html.parser')
+    soup_xpath = etree.HTML(str(soup))
+    episode = soup_xpath.xpath('//*[@id="mainLoad"]/div[3]/div[2]/a/@href')
+
+    return episode
 
 def get_links(show, type):
-    browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)
+    browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
     browser.get(show['url'])
     # for none found movies
     try:
@@ -88,12 +103,13 @@ def get_links(show, type):
         file = urllib.request.urlopen(request)
         links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
 
-        yield links[::-1]
-
         # closing the ads window
         browser.quit()
 
-        yield 'closed'
+        return links[::-1]
 
-    except TelegramError:
-        yield None
+    except:
+        browser.quit()
+        return None
+
+
