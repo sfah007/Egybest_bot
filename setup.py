@@ -1,16 +1,13 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
-from telegram.update import Update
 from telegram.error import TelegramError
 from EgyRequest.Request import get_shows, get_info, get_links, get_season, get_episode
 from EgyFucntions.Function import inline
-from EgyRequest.Text import command_prevent_message, all_prevent_message, select_type_message
-from pprint import pprint
+from EgyRequest.Text import command_prevent_message, select_type_message, quality_wait_message, timeout_message, cancel_message, sleep_message, help_message, cancel_nothing_message
 import logging
 from telegram.ext import (
     Updater,
     CommandHandler,
     MessageHandler,
-    Handler,
     Filters,
     CallbackQueryHandler,
     ConversationHandler,
@@ -42,6 +39,17 @@ logger = logging.getLogger('Hesham')
 
 channel_id = -1001591746087
 
+def bot_stiker_set(sticker, update, context):
+    called_sticker = {
+        'done':2,
+        'sleep':5,
+        'up':6,
+        'think':7,
+        'error': 10,
+    }
+    sticker_set = context.bot.get_sticker_set(name="RoboCatBot")
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=sticker_set.stickers[called_sticker[sticker]])
+
 def start(update, context):
     '''Getting input from user, then search it'''
     try:
@@ -50,9 +58,10 @@ def start(update, context):
             raise TelegramError(message='the member not in group')
     except:
         update.message.reply_text(text='الرجاء الاشتراك في القناة اولا، @Egybot_Community')
+        bot_stiker_set('up', update, context)
         return END
     else:
-        update.message.reply_text(text='الرجاء كتابة فيلمك المفضل')
+        update.message.reply_text(text='الرجاء كتابة الفيلم أو المسلسل الذي تريد البحث عنه:', reply_to_message_id=update.message.message_id)
         return SELECTING_SHOW
 
 def input_search(update, context):
@@ -73,10 +82,10 @@ def input_search(update, context):
         buttons_markup = InlineKeyboardMarkup(buttons)
 
         if context.user_data.get('shows'):
-            update.callback_query.edit_message_text(text='نرجو من اختيار احد الأفلام القادمة مع مراعة اختياراتها بشكل صحيح وشكرا لكم جداا:', reply_markup=buttons_markup)
+            update.callback_query.edit_message_text(text='يمكنك الآن الإختيار من هذه القوائم (يمكنك الرجوع إليها لاحقًا):', reply_markup=buttons_markup)
         else:
             context.bot.send_media_group(chat_id=update.message.chat_id, media=photos)
-            update.message.reply_text(text='نرجو من اختيار احد الأفلام القادمة مع مراعة اختياراتها بشكل صحيح وشكرا لكم جداا:', reply_markup=buttons_markup)
+            update.message.reply_text(text='يمكنك الآن الإختيار من هذه القوائم (يمكنك الرجوع إليها لاحقًا):', reply_markup=buttons_markup)
 
         # saving shows to the user data for next steps
         context.user_data['shows'] = shows
@@ -84,16 +93,13 @@ def input_search(update, context):
         return SELECTING_TYPE
 
     else:
-        update.message.reply_text(text='لا يوجد نتائج، الرجاء المحاولة مرة اخرى')
+        update.message.reply_text(text='لا يوجد نتائج، الرجاء كتابة الفيلم أو المسلسل الذي تريد البحث عنه مرة أخرى:')
 
-
-def command_prevent(update, context):
-    context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
-    update.message.reply_text(text=command_prevent_message)
 
 def all_prevent(update, context):
+    bot_stiker_set('error', update, context)
     context.bot.delete_message(chat_id=update.message.chat_id, message_id=update.message.message_id)
-    update.message.reply_text(text=all_prevent_message)
+    update.message.reply_text(text=command_prevent_message, parse_mode=ParseMode.MARKDOWN)
 
 def select_type(update, context):
     if not context.user_data.get('selected_show'):
@@ -103,7 +109,7 @@ def select_type(update, context):
         selected_show = context.user_data['selected_show']
 
     if not context.user_data.get('selected_show_attrs'):
-        update.callback_query.edit_message_text(text='الرجاء الإنتظار لبضع ثواني', parse_mode=ParseMode.MARKDOWN)
+        update.callback_query.edit_message_text(text='الرجاء الإنتظار قليلًا', parse_mode=ParseMode.MARKDOWN)
         info = get_info(selected_show)
         context.user_data['selected_show_attrs'] = info
     else:
@@ -116,21 +122,17 @@ def select_type(update, context):
     ]
     buttons_markup = InlineKeyboardMarkup(buttons)
 
-    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup)
+    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     if selected_show['type'] == 'movie':
-        print('movie33')
         return SELECTING_QUALITY
     else:
-        print('series33')
         return SELECTING_SEASON
 
 def select_season(update, context):
-    print('season')
-    print(update.callback_query.data)
     info = context.user_data['selected_show_attrs']
     selected_show = context.user_data['selected_show']
-    update.callback_query.edit_message_text(text='من فضلك انتظر قليلا', parse_mode=ParseMode.MARKDOWN)
+    update.callback_query.edit_message_text(text='الرجاء الإنتظار قليلًا', parse_mode=ParseMode.MARKDOWN)
 
     seasons = get_season(selected_show['url'])
 
@@ -141,7 +143,7 @@ def select_season(update, context):
 
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup)
+    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     context.user_data['seasons'] = seasons
 
@@ -151,7 +153,7 @@ def select_season(update, context):
     return SELECTING_EPISODE
 
 def select_episode(update, context):
-    update.callback_query.edit_message_text(text='من فضلك انتظر قليلا', parse_mode=ParseMode.MARKDOWN)
+    update.callback_query.edit_message_text(text='الرجاء الإنتظار قليلًا', parse_mode=ParseMode.MARKDOWN)
 
     info = context.user_data['selected_show_attrs']
     season = context.user_data['seasons']
@@ -172,20 +174,17 @@ def select_episode(update, context):
 
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup)
+    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     context.user_data['episodes'] = episodes
 
     return SELECTING_QUALITY
 
 def select_quality(update, context):
-    print('quality')
-    print(update.callback_query.data)
     info = context.user_data['selected_show_attrs']
     selected_show = context.user_data['selected_show']
 
     if selected_show['type'] == 'movie':
-        print('movie')
         selected_url = selected_show['url']
         type = update.callback_query.data
         back_show_button = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_to_type_quality')], [InlineKeyboardButton(text='الرجوع لقائمة العرض', callback_data='back_shows')]]
@@ -199,12 +198,12 @@ def select_quality(update, context):
         type = context.user_data['watch_type']
         back_show_button = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_episode')], [InlineKeyboardButton(text='الرجوع لقائمة العرض', callback_data='back_shows')]]
 
-    update.callback_query.edit_message_text(text='الرجاء الإنتظار لمدة اقصاها 5 ثواني', parse_mode=ParseMode.MARKDOWN)
+    update.callback_query.edit_message_text(text=quality_wait_message, parse_mode=ParseMode.MARKDOWN)
 
     links = get_links(selected_url, type=type)
 
     # check if movie is available
-    if not links['links']:
+    if not links:
         update.callback_query.answer(text='للأسف الفيلم أو المسلسل الذي اخترته غير متاح للمشاهدة أو التحميل', show_alert=True)
         buttons = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_shows')]]
     else:
@@ -213,14 +212,13 @@ def select_quality(update, context):
 
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup)
+    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     if context.user_data['selected_show']['type'] == 'series':
         context.user_data['selected_episode'] = context.user_data['episodes'][int(update.callback_query.data)]
 
 
 def back_to_shows(update, context):
-    print('back_to_shows')
     del context.user_data['selected_show']
     del context.user_data['selected_show_attrs']
     input_search(update, context)
@@ -228,13 +226,11 @@ def back_to_shows(update, context):
     return SELECTING_TYPE
 
 def back_to_type_quality(update, context):
-    print('back_to_type_quality')
     select_type(update, context)
 
     return SELECTING_QUALITY
 
 def back_to_type_season(update, context):
-    print('back_to_type_season')
     del context.user_data['seasons']
     del context.user_data['watch_type']
     select_type(update, context)
@@ -242,7 +238,6 @@ def back_to_type_season(update, context):
     return SELECTING_SEASON
 
 def back_to_season(update, context):
-    print('back_to_season')
     del context.user_data['selected_season']
     del context.user_data['episodes']
     select_season(update, context)
@@ -250,35 +245,40 @@ def back_to_season(update, context):
     return SELECTING_EPISODE
 
 def back_to_episode(update, context):
-    print('back_to_episode')
     del context.user_data['selected_episode']
     select_episode(update, context)
 
     return SELECTING_QUALITY
 
 def timeout(update, context):
-    print('timeout')
     context.user_data.clear()
     if not update.callback_query:
-        context.bot.send_message(chat_id=update.message.chat_id, text='انتهى الوقت.')
+        context.bot.send_message(chat_id=update.message.chat_id, text=timeout_message, parse_mode=ParseMode.MARKDOWN)
     else:
-        context.bot.send_message(chat_id=update.callback_query.message.chat_id, text='انتهى الوقت.')
+        context.bot.send_message(chat_id=update.callback_query.message.chat_id, text=timeout_message, parse_mode=ParseMode.MARKDOWN)
 
     return TIMEOUT
 
 def cancel(update, context):
-    print('cancel')
     context.user_data.clear()
+    bot_stiker_set('done', update, context)
+    update.message.reply_text(text=cancel_message, parse_mode=ParseMode.MARKDOWN)
     
     return END
 
 def error(update, context):
-    print('error')
     logging.warning(msg=context.error)
 
-def others(update, context):
-    print('others')
+def prevent_common_message(update, context):
+    bot_stiker_set('think', update, context)
+    update.message.reply_text(text=sleep_message, parse_mode=ParseMode.MARKDOWN)
 
+def help_handle(update, context):
+    update.message.reply_text(text=help_message)
+
+def cancel_nothing(update, context):
+    bot_stiker_set('sleep', update, context)
+    update.message.reply_text(text=cancel_nothing_message, parse_mode=ParseMode.MARKDOWN)
 
 def main():
     '''This Function Initiate The Bot '''
@@ -286,21 +286,6 @@ def main():
     Token = '1979999444:AAGuFJiCYCtVB7m2jQojH8zbuYh4F_lU2_o'
     updater = Updater(token=Token)
     dispatcher = updater.dispatcher
-
-    # inline_conversation_handler = ConversationHandler(
-    #     entry_points=[, MessageHandler(Filters.text &(~Filters.regex(f'^/cancel$')), all_prevent)],
-    #     states={
-    #     },
-    #     fallbacks=[MessageHandler(Filters.text &(~Filters.regex(f'^/cancel$')), all_prevent),
-    #                CallbackQueryHandler(back_to_shows, pattern=f'^back_shows$', run_async=True),
-    #                CallbackQueryHandler(back_to_type, pattern=f'^back_type$', run_async=True),
-    #                CommandHandler('cancel', cancel)
-    #     ],
-    #     map_to_parent={
-    #         SELECTING_TYPE: SELECTING_TYPE,
-    #         END: END,
-    #     }
-    #
 
     search_conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
@@ -318,14 +303,14 @@ def main():
                    CallbackQueryHandler(back_to_type_season, pattern=f'^back_to_type_season'),
                    CallbackQueryHandler(back_to_season, pattern=f'^back_season$'),
                    CallbackQueryHandler(back_to_episode, pattern=f'^back_episode$'),
-                   CallbackQueryHandler(others),
                    CommandHandler('cancel', cancel)],
         run_async=True,
-        conversation_timeout=10
+        conversation_timeout=60*60*3
     )
 
-    dispatcher.add_handler(search_conversation_handler)
-    # dispatcher.add_handler(member_handler)
+    dispatcher.add_handler(search_conversation_handler, group=0)
+    dispatcher.add_handler(CommandHandler('help', help_handle))
+    dispatcher.add_handler(CommandHandler('cancel', cancel_nothing))
 
     updater.start_polling()
     updater.idle()

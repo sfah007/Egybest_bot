@@ -5,19 +5,15 @@ import os
 from bs4 import BeautifulSoup
 from lxml import etree
 from fake_useragent import UserAgent
-from requests.api import options
-from telegram.error import TelegramError
 from selenium import webdriver
 from fake_useragent import UserAgent
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from pprint import pprint
 from EgyFucntions.Function import inline
 from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
-import logging
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
@@ -61,7 +57,7 @@ def get_info(show):
     r = requests.get(show['url']).text
     soup = BeautifulSoup(r, 'html.parser')
     soup_xpath = etree.HTML(str(soup))
-    movieTable = soup.select('table.movieTable tr:not(tr:nth-child(1)) td')
+    movieTable = soup.select('table.movieTable tr:not(:where(tr:nth-child(1),tr:last-child)) td')
     movieTable_text = [movieTable[i].text for i in range(0,len(movieTable))]
     rate = soup_xpath.xpath('//*[@id="mainLoad"]/div[1]/div[3]/div[2]/span[1]/span[1]/text()')
     story = soup_xpath.xpath('//*[@id="mainLoad"]/div[1]/div[4]/div[2]/text()')
@@ -93,7 +89,6 @@ def get_links(show, type):
         soup = BeautifulSoup(browser.page_source, 'html.parser')
         soup_xpath = etree.HTML(str(soup))
         links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
-        print(links_table)
         element.click()
         browser.switch_to_frame(element)
 
