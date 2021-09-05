@@ -20,10 +20,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 import logging
 
 chrome_options = webdriver.ChromeOptions()
-# chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
+chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
-# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 
@@ -65,9 +65,8 @@ def get_info(show):
     movieTable_text = [movieTable[i].text for i in range(0,len(movieTable))]
     rate = soup_xpath.xpath('//*[@id="mainLoad"]/div[1]/div[3]/div[2]/span[1]/span[1]/text()')
     story = soup_xpath.xpath('//*[@id="mainLoad"]/div[1]/div[4]/div[2]/text()')
-    links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
 
-    return {'show':show, 'info':movieTable_text, 'story':story, 'rate':rate, 'links_table':links_table}
+    return {'show':show, 'info':movieTable_text, 'story':story, 'rate':rate}
 
 def get_season(show):
     r = requests.get(show).text
@@ -83,14 +82,18 @@ def get_episode(show):
     soup_xpath = etree.HTML(str(soup))
     episode = soup_xpath.xpath('//*[@id="mainLoad"]/div[3]/div[2]/a/@href')
 
-    return episode
+    return episode[::-1]
 
 def get_links(show, type):
-    browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
-    browser.get(show['url'])
+    browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
+    browser.get(show)
     # for none found movies
     try:
         element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
+        soup = BeautifulSoup(browser.page_source, 'html.parser')
+        soup_xpath = etree.HTML(str(soup))
+        links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
+        print(links_table)
         element.click()
         browser.switch_to_frame(element)
 
@@ -106,7 +109,7 @@ def get_links(show, type):
         # closing the ads window
         browser.quit()
 
-        return links[::-1]
+        return {'links':links[::-1], 'links_table':links_table}
 
     except:
         browser.quit()
