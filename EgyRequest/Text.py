@@ -63,14 +63,16 @@ help_message = '''
 
 '''
 
-def select_type_message(show, add=None):
+def select_type_message(show, add=None, links=None):
     l = []
+    new_line = '\n\n'
 
     for i in range(0, len(show['info']),2):
         l.append(f'● {show["info"][i]} : {show["info"][i + 1]}')
     l = '\n\n'.join(l)
 
     return f'''
+
 [{show['show']['name']} - {show['show']['type']}]({show['show']['img']})
 
 {l}
@@ -82,7 +84,12 @@ def select_type_message(show, add=None):
 تقييم المشاهدين : {show['rate']}
 
 **{' - '.join(add) if add else ''}**
+
+**{'الروابط المباشرة، اضغط على الجودة ليتم تحويلك:' if links else ''}**
+
+**{new_line.join([f'[{links["links_table"][i]} - {links["links_table"][i+1]}]({links["links"][int(i/2)]})' for i in range(0, len(links['links_table']), 2)]) if links else ''}**
 '''
+
 
 
 

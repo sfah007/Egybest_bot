@@ -189,8 +189,6 @@ def select_episode(update, context):
 def select_quality(update, context):
     info = context.user_data['selected_show_attrs']
     selected_show = context.user_data['selected_show']
-    season = context.user_data['seasons']
-    episodes = context.user_data['episodes']
 
     if selected_show['type'] == 'movie':
         selected_url = selected_show['url']
@@ -199,7 +197,8 @@ def select_quality(update, context):
         type_appear = context.user_data['watch_type'] if context.user_data.get('watch_type') else update.callback_query.data
         add = [special_dict[type_appear]]
     else:
-
+        season = context.user_data['seasons']
+        episodes = context.user_data['episodes']
         if not context.user_data.get('selected_episode'):
             selected_url = episodes[int(update.callback_query.data)]
         else:
@@ -224,7 +223,7 @@ def select_quality(update, context):
 
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info, add=add), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
+    update.callback_query.edit_message_text(text=select_type_message(info, add=add, links=links), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     if context.user_data['selected_show']['type'] == 'series':
         context.user_data['selected_episode'] = context.user_data['episodes'][int(update.callback_query.data)]
