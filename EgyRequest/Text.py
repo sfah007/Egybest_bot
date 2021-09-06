@@ -63,7 +63,7 @@ help_message = '''
 
 '''
 
-def select_type_message(show):
+def select_type_message(show, add=None):
     l = []
 
     for i in range(0, len(show['info']),2):
@@ -80,8 +80,9 @@ def select_type_message(show):
 {show['story']}
 
 تقييم المشاهدين : {show['rate']}
-'''
 
+**{' - '.join(add) if add else ''}**
+'''
 
 
 

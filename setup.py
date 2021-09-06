@@ -37,6 +37,11 @@ logger = logging.getLogger('Hesham')
 # api_id = 7674707
 # api_hash = '165eb092814f4a54e215e0c03b844de7'
 
+special_dict = {
+    'watch': 'مشاهدة',
+    'dl': 'تحميل',
+}
+
 channel_id = -1001591746087
 
 def bot_stiker_set(sticker, update, context):
@@ -140,10 +145,10 @@ def select_season(update, context):
                         [InlineKeyboardButton(text='الرجوع لقائمة العرض', callback_data='back_shows')]
                         ]
     buttons = inline([InlineKeyboardButton(text=f'الموسم - {i+1}', callback_data=i) for i in range(len(seasons))], add=back_show_button)
-
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
+    type_appear = context.user_data['watch_type'] if context.user_data.get('watch_type') else update.callback_query.data
+    update.callback_query.edit_message_text(text=select_type_message(info, [special_dict[type_appear]]), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     context.user_data['seasons'] = seasons
 
@@ -174,7 +179,8 @@ def select_episode(update, context):
 
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
+    season_appear = season.index(context.user_data['selected_season']) if context.user_data.get('selected_season') else update.callback_query.data
+    update.callback_query.edit_message_text(text=select_type_message(info, add=[special_dict[context.user_data['watch_type']],f'الموسم  {int(season_appear) + 1}']), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     context.user_data['episodes'] = episodes
 
@@ -183,20 +189,26 @@ def select_episode(update, context):
 def select_quality(update, context):
     info = context.user_data['selected_show_attrs']
     selected_show = context.user_data['selected_show']
+    season = context.user_data['seasons']
+    episodes = context.user_data['episodes']
 
     if selected_show['type'] == 'movie':
         selected_url = selected_show['url']
         type = update.callback_query.data
         back_show_button = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_to_type_quality')], [InlineKeyboardButton(text='الرجوع لقائمة العرض', callback_data='back_shows')]]
+        type_appear = context.user_data['watch_type'] if context.user_data.get('watch_type') else update.callback_query.data
+        add = [special_dict[type_appear]]
     else:
 
         if not context.user_data.get('selected_episode'):
-            selected_url = context.user_data['episodes'][int(update.callback_query.data)]
+            selected_url = episodes[int(update.callback_query.data)]
         else:
             selected_url = context.user_data['selected_episode']
 
         type = context.user_data['watch_type']
         back_show_button = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_episode')], [InlineKeyboardButton(text='الرجوع لقائمة العرض', callback_data='back_shows')]]
+        episode_appear = episodes.index(context.user_data['selected_episode']) if context.user_data.get('selected_episode') else update.callback_query.data
+        add = [special_dict[context.user_data['watch_type']], f'الموسم  {int(season.index(context.user_data["selected_season"])) + 1}', f'الحلقة  {int(episode_appear) + 1}']
 
     update.callback_query.edit_message_text(text=quality_wait_message, parse_mode=ParseMode.MARKDOWN)
 
@@ -212,7 +224,7 @@ def select_quality(update, context):
 
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
+    update.callback_query.edit_message_text(text=select_type_message(info, add=add), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
 
     if context.user_data['selected_show']['type'] == 'series':
         context.user_data['selected_episode'] = context.user_data['episodes'][int(update.callback_query.data)]
