@@ -14,14 +14,16 @@ from EgyFucntions.Function import inline
 from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
+import logging
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
+logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.CRITICAL)
 
 def get_shows(key_word):
     moviesDict = {}
@@ -101,10 +103,8 @@ def get_links(show, type):
         file = urllib.request.urlopen(request)
         links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
 
-        # closing the ads window
-        browser.quit()
-
-        return {'links':links[::-1], 'links_table':links_table}
+        print('finished')
+        return {'links':links[::-1], 'links_table':links_table}, browser
 
     except:
         browser.quit()

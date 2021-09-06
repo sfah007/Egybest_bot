@@ -4,6 +4,7 @@ from EgyRequest.Request import get_shows, get_info, get_links, get_season, get_e
 from EgyFucntions.Function import inline
 from EgyRequest.Text import command_prevent_message, select_type_message, quality_wait_message, timeout_message, cancel_message, sleep_message, help_message, cancel_nothing_message
 import logging
+import asyncio
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -43,6 +44,10 @@ special_dict = {
 }
 
 channel_id = -1001591746087
+
+async def browser_quit(broswer):
+
+    return broswer.quit()
 
 def bot_stiker_set(sticker, update, context):
     called_sticker = {
@@ -89,7 +94,10 @@ def input_search(update, context):
         if context.user_data.get('shows'):
             update.callback_query.edit_message_text(text='يمكنك الآن الإختيار من هذه القوائم (يمكنك الرجوع إليها لاحقًا):', reply_markup=buttons_markup)
         else:
-            context.bot.send_media_group(chat_id=update.message.chat_id, media=photos)
+            try:
+                context.bot.send_media_group(chat_id=update.message.chat_id, media=photos, reply_to_message_id=update.message.message_id)
+            except:
+                update.message.reply_text(text='لقد حدثت مشكلة أثناء تحميل الصو، ولكن لحسن الحظ يمكنك الإستمرار في إختيار فيلمك أو مسلسلك')
             update.message.reply_text(text='يمكنك الآن الإختيار من هذه القوائم (يمكنك الرجوع إليها لاحقًا):', reply_markup=buttons_markup)
 
         # saving shows to the user data for next steps
@@ -211,7 +219,7 @@ def select_quality(update, context):
 
     update.callback_query.edit_message_text(text=quality_wait_message, parse_mode=ParseMode.MARKDOWN)
 
-    links = get_links(selected_url, type=type)
+    links, browser = get_links(selected_url, type=type)
 
     # check if movie is available
     if not links:
@@ -219,7 +227,8 @@ def select_quality(update, context):
         buttons = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_shows')]]
     else:
         links_table = links['links_table']
-        buttons = inline([InlineKeyboardButton(text=f'{links_table[i]} - {links_table[i+1]}', callback_data=f'{links_table[i]}', url=links['links'][int(i/2)]) for i in range(0, len(links_table), 2)], add=back_show_button)
+        buttons_inline = [InlineKeyboardButton(text=f'{links_table[i]} - {links_table[i+1]}', callback_data=f'{links_table[i]}', url=links['links'][int(i/2)]) for i in range(0, len(links_table), 2)]
+        buttons = inline(buttons_inline)
 
     # edit the message and reply markup
     buttons_markup = InlineKeyboardMarkup(buttons)
@@ -228,6 +237,10 @@ def select_quality(update, context):
     if context.user_data['selected_show']['type'] == 'series':
         context.user_data['selected_episode'] = context.user_data['episodes'][int(update.callback_query.data)]
 
+    browser.quit()
+    print('quit')
+    buttons.extend(back_show_button)
+    update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
 
 def back_to_shows(update, context):
     del context.user_data['selected_show']
