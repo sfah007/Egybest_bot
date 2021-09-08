@@ -83,7 +83,7 @@ def get_episode(show):
     return episode[::-1]
 
 def get_links(show, type):
-    browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
+    browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
     browser.get(show)
     browser.delete_all_cookies()
     global cookies
