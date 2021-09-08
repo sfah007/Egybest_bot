@@ -15,6 +15,7 @@ from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
 import logging
+from EgyFucntions.Function import cookies
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
@@ -24,7 +25,6 @@ chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.CRITICAL)
-cookies = {'name':'PSSID', 'value':'-GkkG3oxqjeS7U-gVShXw1Yb712piNNEGnxINucdDtIFlj1vJZ642tzMVu3brkxogiClSL02HKpdZuulNO%2CMSLnwP1pzuRzZpsB3-vmjEiakZ3QCrXiNFvkaeV78v0MS'}
 
 def get_shows(key_word):
     moviesDict = {}
@@ -86,7 +86,8 @@ def get_episode(show):
 def get_links(show, type):
     browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
     browser.get(show)
-    browser.add_cookie(cookies)
+    browser.delete_all_cookies()
+    set_cookies = [browser.add_cookie(i) for i in cookies]
     browser.refresh()
 
     # for none found movies
