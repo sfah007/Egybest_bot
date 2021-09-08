@@ -20,22 +20,10 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
-logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.CRITICAL)
-
-browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options) # os.environ.get('CHROMEDRIVER_PATH')
-
-browser.get('https://giga.egybest.kim/movie/rushed-2021/?ref=movies-p1')
-element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
-element.click()
-browser._switch_to.frame(element)
-
-# wait until disappear
-WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
-cookies = browser.get_cookies()
-browser.quit()
+cookies = [{'name':'PSSID','value':'P2pu246tCRpEc3wHLdE4NxfA1u8Ywdvvexl9INvgFifu1%2CJBHb0V32gmu9yKDTGK25TAFuRNr8FFl2iPxHo7AQdmlNnvXf6PKbu3Q4BS%2CGsGwW%2CVK6ENsMIXBLMocqZU'}]
 
 def get_shows(key_word):
     moviesDict = {}
@@ -95,9 +83,11 @@ def get_episode(show):
     return episode[::-1]
 
 def get_links(show, type):
-    browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
+    browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
     browser.get(show)
     browser.delete_all_cookies()
+    global cookies
+    print(cookies)
     set_cookies = [browser.add_cookie(i) for i in cookies]
     browser.refresh()
     soup = BeautifulSoup(browser.page_source, 'html.parser')
@@ -106,12 +96,24 @@ def get_links(show, type):
 
     # for none found movies
     try:
-        browser._switch_to.frame(browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe'))
+        element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
+        browser._switch_to.frame(element)
     except:
         browser.quit()
         return None,None
 
-    source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
+    try:
+        source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
+    except:
+        browser._switch_to.default_content()
+        element.click()
+        browser._switch_to.frame(element)
+
+        # wait until disappear
+        WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
+        source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
+        cookies_list = browser.get_cookies()
+        cookies = cookies_list
 
     headers = {'user-agent': user.random}
     request = urllib.request.Request(source, None, headers)  # The assembled request

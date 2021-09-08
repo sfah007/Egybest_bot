@@ -72,6 +72,7 @@ def start(update, context):
         return END
     else:
         update.message.reply_text(text='الرجاء كتابة الفيلم أو المسلسل الذي تريد البحث عنه:', reply_to_message_id=update.message.message_id)
+        print(update.message.from_user)
         return SELECTING_SHOW
 
 def input_search(update, context):
