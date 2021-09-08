@@ -225,22 +225,22 @@ def select_quality(update, context):
     if not links:
         update.callback_query.answer(text='للأسف الفيلم أو المسلسل الذي اخترته غير متاح للمشاهدة أو التحميل', show_alert=True)
         buttons = [[InlineKeyboardButton(text='الرجوع للخلف', callback_data='back_shows')]]
+        update.callback_query.edit_message_text(text=select_type_message(info, add=add, links=links), parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons))
+
     else:
         links_table = links['links_table']
-        buttons_inline = [InlineKeyboardButton(text=f'{links_table[i]} - {links_table[i+1]}', callback_data=f'{links_table[i]}', url=links['links'][int(i/2)]) for i in range(0, len(links_table), 2)]
-        buttons = inline(buttons_inline)
-
-    # edit the message and reply markup
-    buttons_markup = InlineKeyboardMarkup(buttons)
-    update.callback_query.edit_message_text(text=select_type_message(info, add=add, links=links), reply_markup=buttons_markup, parse_mode=ParseMode.MARKDOWN)
+        update.callback_query.edit_message_text(text=select_type_message(info, add=add, links=links), parse_mode=ParseMode.MARKDOWN)
+        # edit the message and reply markup
+        # buttons_inline = [InlineKeyboardButton(text=f'{links_table[i]} - {links_table[i+1]}', callback_data=f'{links_table[i]}', url=links['links'][int(i/2)]) for i in range(0, len(links_table), 2)]
+        # buttons = inline(buttons_inline)
 
     if context.user_data['selected_show']['type'] == 'series':
         context.user_data['selected_episode'] = context.user_data['episodes'][int(update.callback_query.data)]
 
-    browser.quit()
-    print('quit')
-    buttons.extend(back_show_button)
-    update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
+    if links:
+        browser.quit()
+        print('quit')
+        update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(back_show_button))
 
 def back_to_shows(update, context):
     del context.user_data['selected_show']
