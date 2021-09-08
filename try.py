@@ -29,13 +29,13 @@ print(r.text)
 # browser.quit()
 
 
-# element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
-# element.click()
-# browser.switch_to_frame(element)
-#
-# # wait until disappear
-# WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
-# source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
+element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
+element.click()
+browser.switch_to_frame(element)
+
+# wait until disappear
+WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
+source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
 
 
 

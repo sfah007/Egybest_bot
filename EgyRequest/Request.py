@@ -15,16 +15,25 @@ from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
 import logging
-from EgyFucntions.Function import cookies
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.CRITICAL)
+browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
+browser.get('https://giga.egybest.kim/movie/rushed-2021/?ref=movies-p1')
+element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
+element.click()
+browser._switch_to.frame(element)
+
+# wait until disappear
+WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
+cookies = browser.get_cookies()
+browser.quit()
 
 def get_shows(key_word):
     moviesDict = {}
@@ -89,22 +98,24 @@ def get_links(show, type):
     browser.delete_all_cookies()
     set_cookies = [browser.add_cookie(i) for i in cookies]
     browser.refresh()
-
-    # for none found movies
-    # try:
     soup = BeautifulSoup(browser.page_source, 'html.parser')
     soup_xpath = etree.HTML(str(soup))
     links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
 
-    browser._switch_to.frame(browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe'))
+    # for none found movies
+    try:
+        browser._switch_to.frame(browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe'))
+    except:
+        browser.quit()
+        return None,None
+
     source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
 
     headers = {'user-agent': user.random}
     request = urllib.request.Request(source, None, headers)  # The assembled request
     file = urllib.request.urlopen(request)
-    links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
+    links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8',
+                                                                                          str(line)).group(1) for line
+             in file if 'http' in str(line)]
 
-    return {'links':links[::-1], 'links_table':links_table}, browser
-    # except:
-    #     browser.quit()
-    #     return None,None
+    return {'links': links[::-1], 'links_table': links_table}, browser
