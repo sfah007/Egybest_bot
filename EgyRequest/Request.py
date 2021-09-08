@@ -90,20 +90,20 @@ def get_links(show, type):
     browser.refresh()
 
     # for none found movies
-    try:
-        soup = BeautifulSoup(browser.page_source, 'html.parser')
-        soup_xpath = etree.HTML(str(soup))
-        links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
+    # try:
+    soup = BeautifulSoup(browser.page_source, 'html.parser')
+    soup_xpath = etree.HTML(str(soup))
+    links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
 
-        browser._switch_to.frame(browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe'))
-        source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
+    browser._switch_to.frame(browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe'))
+    source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
 
-        headers = {'user-agent': user.random}
-        request = urllib.request.Request(source, None, headers)  # The assembled request
-        file = urllib.request.urlopen(request)
-        links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
+    headers = {'user-agent': user.random}
+    request = urllib.request.Request(source, None, headers)  # The assembled request
+    file = urllib.request.urlopen(request)
+    links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1) for line in file if 'http' in str(line)]
 
-        return {'links':links[::-1], 'links_table':links_table}, browser
-    except:
-        browser.quit()
-        return None,None
+    return {'links':links[::-1], 'links_table':links_table}, browser
+    # except:
+    #     browser.quit()
+    #     return None,None
