@@ -20,7 +20,7 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
 chrome_options.add_argument(f'user-agent={user.random}')
-# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 cookies = [{'name':'PSSID','value':'P2pu246tCRpEc3wHLdE4NxfA1u8Ywdvvexl9INvgFifu1%2CJBHb0V32gmu9yKDTGK25TAFuRNr8FFl2iPxHo7AQdmlNnvXf6PKbu3Q4BS%2CGsGwW%2CVK6ENsMIXBLMocqZU'}]
