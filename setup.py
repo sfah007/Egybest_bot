@@ -4,7 +4,7 @@ from EgyRequest.Request import get_shows, get_info, get_links, get_season, get_e
 from EgyFucntions.Function import inline
 from EgyRequest.Text import command_prevent_message, select_type_message, quality_wait_message, timeout_message, cancel_message, sleep_message, help_message, cancel_nothing_message
 import logging
-import asyncio
+import os
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -64,6 +64,7 @@ def start(update, context):
     '''Getting input from user, then search it'''
     try:
         member = context.bot.getChatMember(chat_id=channel_id, user_id=update.message.chat_id)
+        print(member)
         if member.status == 'left':
             raise TelegramError(message='the member not in group')
     except:
@@ -308,7 +309,7 @@ def cancel_nothing(update, context):
 def main():
     '''This Function Initiate The Bot '''
 
-    Token = '1979999444:AAGuFJiCYCtVB7m2jQojH8zbuYh4F_lU2_o'
+    Token = os.environ.get('TOKEN')
     updater = Updater(token=Token)
     dispatcher = updater.dispatcher
 
