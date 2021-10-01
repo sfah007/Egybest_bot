@@ -83,21 +83,21 @@ def get_episode(show):
 def get_links(show, type):
 
     # for none found movies
-    try:
-        r = s.get(show)
+    # try:
+    r = s.get(show)
 
-        soup = BeautifulSoup(r.content, 'html.parser')
-        soup_xpath = etree.HTML(str(soup))
-        links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
-        iframe_src = soup.iframe.attrs["src"]
+    soup = BeautifulSoup(r.content, 'html.parser')
+    soup_xpath = etree.HTML(str(soup))
+    links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
+    iframe_src = soup.iframe.attrs["src"]
 
-        r = s.get(f"https://giga.egybest.kim{iframe_src}")
-        soup = BeautifulSoup(r.content, "html.parser")
-        source = f'https://giga.egybest.kim{soup.source.attrs["src"]}'
+    r = s.get(f"https://giga.egybest.kim{iframe_src}")
+    soup = BeautifulSoup(r.content, "html.parser")
+    source = f'https://giga.egybest.kim{soup.source.attrs["src"]}'
 
-        file = s.get(url=source)
-        links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8',str(line)).group(1) for line in file.iter_lines() if b'http' in line]
-    except:
-        return None
-    else:
-        return {'links': links[::-1], 'links_table': links_table}
+    file = s.get(url=source)
+    links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8',str(line)).group(1) for line in file.iter_lines() if b'http' in line]
+    # except:
+    #     return None
+    # else:
+    return {'links': links[::-1], 'links_table': links_table}

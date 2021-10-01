@@ -8,7 +8,7 @@ user = UserAgent()
 headers = {'user-agent': user.random}
 
 s = requests.Session()
-s.cookies.set('PSSID', 'B-0MebEG5cd-WReJN4OM%2CHsKlJKhYoXgPjhYsAHh-qDFj3EoatMBwuTXUTfQ-ADSPNCzDX2UhaTW9-ZyzbuTpLEkRsA7r6E8jWVaExFgpkFcgDy%2CFzEjF3jDmTYL3mGC', domain='giga.egybest.kim', expires=None)
+s.cookies.set('PSSID', '1DJL3W5bGlXZshzXOqA3cltEJLzkUHehXfqKc3hEh5m3ZOH49lPX7grhwHFwuFSBTRfOJ0aAKMZw9ld3FM-JWL94aZYOy0Lf-uEsStm0WVArytEybnTLeS41i2Pob1%2Ct', domain='giga.egybest.kim', expires=None)
 s.headers.update(headers)
 
 r = s.get('https://giga.egybest.kim/movie/my-name-is-pauli-murray-2021/?ref=movies-p1')
