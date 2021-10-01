@@ -305,7 +305,7 @@ def cancel_nothing(update, context):
 def main():
     '''This Function Initiate The Bot '''
 
-    Token = '1979999444:AAFf8g_DqH0xk5GcyqXekpqSXbi8Tcq7H8w' #os.environ.get('TOKEN')
+    Token = os.environ.get('TOKEN') #'1979999444:AAFf8g_DqH0xk5GcyqXekpqSXbi8Tcq7H8w' #os.environ.get('TOKEN')
     updater = Updater(token=Token)
     dispatcher = updater.dispatcher
 

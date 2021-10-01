@@ -15,11 +15,12 @@ from telegram.files.inputmedia import InputMediaPhoto
 from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
 import logging
+import os
 
 user = UserAgent()
 headers = {'user-agent': user.random}
 s = requests.Session()
-s.cookies.set('PSSID', 'B-0MebEG5cd-WReJN4OM%2CHsKlJKhYoXgPjhYsAHh-qDFj3EoatMBwuTXUTfQ-ADSPNCzDX2UhaTW9-ZyzbuTpLEkRsA7r6E8jWVaExFgpkFcgDy%2CFzEjF3jDmTYL3mGC', domain='giga.egybest.kim', expires=None)
+s.cookies.set('PSSID', os.environ.get('PSSID'), domain='giga.egybest.kim', expires=None)
 s.headers.update(headers)
 
 def get_shows(key_word):
