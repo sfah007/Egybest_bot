@@ -16,14 +16,11 @@ from telegram import InlineKeyboardButton
 from webdriver_manager.chrome import ChromeDriverManager
 import logging
 
-chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = os.environ.get('GOOGLE_CHROME_BIN')
 user = UserAgent()
-chrome_options.add_argument(f'user-agent={user.random}')
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--disable-gpu')
-chrome_options.add_argument('--no-sandbox')
-cookies = [{'name':'PSSID','value':'P2pu246tCRpEc3wHLdE4NxfA1u8Ywdvvexl9INvgFifu1%2CJBHb0V32gmu9yKDTGK25TAFuRNr8FFl2iPxHo7AQdmlNnvXf6PKbu3Q4BS%2CGsGwW%2CVK6ENsMIXBLMocqZU'}]
+headers = {'user-agent': user.random}
+s = requests.Session()
+s.cookies.set('PSSID', 'B-0MebEG5cd-WReJN4OM%2CHsKlJKhYoXgPjhYsAHh-qDFj3EoatMBwuTXUTfQ-ADSPNCzDX2UhaTW9-ZyzbuTpLEkRsA7r6E8jWVaExFgpkFcgDy%2CFzEjF3jDmTYL3mGC', domain='giga.egybest.kim', expires=None)
+s.headers.update(headers)
 
 def get_shows(key_word):
     moviesDict = {}
@@ -83,43 +80,23 @@ def get_episode(show):
     return episode[::-1]
 
 def get_links(show, type):
-    browser = webdriver.Chrome(os.environ.get('CHROMEDRIVER_PATH'), options=chrome_options)  # os.environ.get('CHROMEDRIVER_PATH')
-    browser.get(show)
-    browser.delete_all_cookies()
-    global cookies
-    print(cookies)
-    set_cookies = [browser.add_cookie(i) for i in cookies]
-    browser.refresh()
-    soup = BeautifulSoup(browser.page_source, 'html.parser')
-    soup_xpath = etree.HTML(str(soup))
-    links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
 
     # for none found movies
     try:
-        element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
-        browser._switch_to.frame(element)
+        r = s.get(show)
+
+        soup = BeautifulSoup(r.content, 'html.parser')
+        soup_xpath = etree.HTML(str(soup))
+        links_table = soup_xpath.xpath('//*[@id="watch_dl"]/table/tbody/tr/td[position()<=3 and position()>1]/text()')
+        iframe_src = soup.iframe.attrs["src"]
+
+        r = s.get(f"https://giga.egybest.kim{iframe_src}")
+        soup = BeautifulSoup(r.content, "html.parser")
+        source = f'https://giga.egybest.kim{soup.source.attrs["src"]}'
+
+        file = s.get(url=source)
+        links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8',str(line)).group(1) for line in file.iter_lines() if b'http' in line]
     except:
-        browser.quit()
-        return None,None
-
-    try:
-        source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
-    except:
-        browser._switch_to.default_content()
-        element.click()
-        browser._switch_to.frame(element)
-
-        # wait until disappear
-        WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
-        source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
-        cookies_list = browser.get_cookies()
-        cookies = cookies_list
-
-    headers = {'user-agent': user.random}
-    request = urllib.request.Request(source, None, headers)  # The assembled request
-    file = urllib.request.urlopen(request)
-    links = [re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8',
-                                                                                          str(line)).group(1) for line
-             in file if 'http' in str(line)]
-
-    return {'links': links[::-1], 'links_table': links_table}, browser
+        return None
+    else:
+        return {'links': links[::-1], 'links_table': links_table}

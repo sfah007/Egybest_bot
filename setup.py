@@ -45,10 +45,6 @@ special_dict = {
 
 channel_id = -1001591746087
 
-async def browser_quit(broswer):
-
-    return broswer.quit()
-
 def bot_stiker_set(sticker, update, context):
     called_sticker = {
         'done':2,
@@ -221,7 +217,7 @@ def select_quality(update, context):
 
     update.callback_query.edit_message_text(text=quality_wait_message, parse_mode=ParseMode.MARKDOWN)
 
-    links, browser = get_links(selected_url, type=type)
+    links = get_links(selected_url, type=type)
 
     # check if movie is available
     if not links:
@@ -240,13 +236,12 @@ def select_quality(update, context):
         context.user_data['selected_episode'] = context.user_data['episodes'][int(update.callback_query.data)]
 
     if links:
-        browser.quit()
-        print('quit')
         update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(back_show_button))
 
 def back_to_shows(update, context):
     del context.user_data['selected_show']
     del context.user_data['selected_show_attrs']
+
     input_search(update, context)
 
     return SELECTING_TYPE
@@ -259,6 +254,7 @@ def back_to_type_quality(update, context):
 def back_to_type_season(update, context):
     del context.user_data['seasons']
     del context.user_data['watch_type']
+
     select_type(update, context)
 
     return SELECTING_SEASON
@@ -309,7 +305,7 @@ def cancel_nothing(update, context):
 def main():
     '''This Function Initiate The Bot '''
 
-    Token = os.environ.get('TOKEN')
+    Token = '1979999444:AAFf8g_DqH0xk5GcyqXekpqSXbi8Tcq7H8w' #os.environ.get('TOKEN')
     updater = Updater(token=Token)
     dispatcher = updater.dispatcher
 

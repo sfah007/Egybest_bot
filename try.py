@@ -1,43 +1,36 @@
 import requests
-from fake_useragent import UserAgent
-from selenium import webdriver
-from fake_useragent import UserAgent
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
+import urllib
+import re
+from fake_useragent import UserAgent
 
-url = 'https://giga.egybest.kim/movie/escape-room-tournament-of-champions-2021/?ref=home-trends'
+user = UserAgent()
+headers = {'user-agent': user.random}
+# cookies = {'PSSID':'sqrO3-GC3jTyM-5q6IYPW0JW4xSiTIXR-FDd5TUkSoi8UOkoKKMdWmpyW8gz2uykrsxZzrgiKrjq6dsY61o7ROVjfWZ6CYFpmuX1rNFX70x5C6AFIHuiQaYiFUuEvN-H',
+#             'JS_TIMEZONE_OFFSET':'-7200',
+#             'push_subscribed':'ignore',
+#             'EGUDI':'lFcVBIvskXzPyFs2.0ad44e25a1446d2e6865b4354c9976399fa56d066fcc84280ff1da36eb1570848a23a4d2b368ba8169e733d3228b5ade37dab226078640be8abcaa7b000696ae',
+#             'c952f23a':'KRRRzlZQsRzRVRzPiPPrYbpPYrzVzRzopEKYrzRVPniPPPPPIwRPCzVqzRzSZlRzRVRzwyMErrqnAPVqMRMTzRi-30bdf693b334c6c6a6ed74c553ddeadc',
+#            }
 
-r = requests.get(url,cookies=cookies)
+s = requests.Session()
+s.cookies.set('PSSID', 'iYj6tfPiwvrajztIdPAFQwXxyobbStVUrJl9lsbHBu1ryYi9Zf2qmwh%2CnOBLATHlD%2Ccy5cplJNDyX0eYJFTRw00Szwa9pVrLFBnMXZBL-gznKUKlDFhHoDdY6nXsad-t', domain='giga.egybest.kim', expires=None)
+s.headers.update(headers)
 
-print(r.text)
+r = s.get('https://giga.egybest.kim/movie/my-name-is-pauli-murray-2021/?ref=movies-p1')
 
-# chrome_options = webdriver.ChromeOptions()
-# user = UserAgent()
-# # chrome_options.add_argument('--headless')
-# chrome_options.add_argument('--disable-gpu')
-# chrome_options.add_argument('--no-sandbox')
-# browser = webdriver.Chrome(r'C:\Users\MAMDO\.wdm\drivers\chromedriver\win32\93.0.4577.15\chromedriver.exe', options=chrome_options)
-#
-# browser.get(url)
-# browser.add_cookie(cookies)
-# browser.refresh()
-# browser._switch_to.frame(browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe'))
-# print()
-# browser.quit()
+soup = BeautifulSoup(r.content, 'html.parser')
+iframe_src = soup.iframe.attrs["src"]
 
+r = s.get(f"https://giga.egybest.kim{iframe_src}")
 
-element = browser.find_element_by_xpath('//*[@id="watch_dl"]/div[1]/iframe')
-element.click()
-browser.switch_to_frame(element)
-
-# wait until disappear
-WebDriverWait(browser, 10).until(EC.invisibility_of_element((By.CLASS_NAME, 'ico-play-circle')))
-source = browser.find_element_by_xpath('//*[@id="video_html5_api"]/source').get_attribute('src')
+soup = BeautifulSoup(r.content, "html.parser")
+source = f'https://giga.egybest.kim{soup.source.attrs["src"]}'
 
 
+file = requests.get(url=source)
+links = [re.search(b'(http.*?)/stream/', line).group(1) + b'/watch/' + re.search(b'/stream/(.*?)/stream.m3u8', line).group(1) for line in file.iter_lines() if b'http' in line] # re.search('(http.*?)/stream/', str(line)).group(1) + f'/{type}/' + re.search('/stream/(.*?)/stream.m3u8', str(line)).group(1)
+print(links)
 
 
 
