@@ -43,7 +43,7 @@ special_dict = {
     'dl': 'تحميل',
 }
 
-channel_id = -1001591746087
+channel_id = -1001360953554
 
 def bot_stiker_set(sticker, update, context):
     called_sticker = {
